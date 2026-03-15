@@ -1,4 +1,5 @@
 import os
+import platform
 import re
 import sys
 import time
@@ -59,10 +60,24 @@ class TranslatorWorker(TaskStep):
             self.logger.info(f"⚙️ 加载{display_name}模型: {os.path.basename(self.loaded_model_path)}")
             self.llm = Llama(
                 model_path=self.loaded_model_path,
-                n_gpu_layers=-1,
+                n_gpu_layers=self._resolve_n_gpu_layers(),
                 n_ctx=4096,
                 verbose=False
             )
+
+    def _resolve_n_gpu_layers(self) -> int:
+        configured_value = os.environ.get("PHISPER_N_GPU_LAYERS", "").strip()
+        if configured_value:
+            try:
+                return int(configured_value)
+            except ValueError:
+                self.logger.warning(
+                    f"鏃犳晥鐨?PHISPER_N_GPU_LAYERS 鍊? {configured_value}锛屽皢浣跨敤榛樿閰嶇疆"
+                )
+
+        if platform.system() == "Darwin":
+            return -1
+        return 0
 
     def run(
         self,
@@ -246,7 +261,7 @@ class TranslatorWorker(TaskStep):
 if __name__ == "__main__":
     logger.setLevel(logging.INFO)
     
-    test_srt = "/Users/wanghanxuan/Desktop/phisper/PhisperLite/temp/temp_audio.srt"
+    test_srt = str(Path(ROOT_DIR) / "temp" / "temp_audio.srt")
     
     if os.path.exists(test_srt):
         print("\n" + " 📺 双语翻译监控就绪 ".center(40, "="))

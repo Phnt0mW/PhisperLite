@@ -48,11 +48,21 @@ class PhisperConfig:
                 pass
 
     def _resolve_writable_base_dir(self) -> Path:
-        candidates = [
-            Path.home() / "Library" / "Application Support" / "PhisperLite",
+        system_name = platform.system()
+        candidates = []
+
+        if system_name == "Windows":
+            local_app_data = os.environ.get("LOCALAPPDATA")
+            if local_app_data:
+                candidates.append(Path(local_app_data) / "PhisperLite")
+            candidates.append(Path.home() / "AppData" / "Local" / "PhisperLite")
+        elif system_name == "Darwin":
+            candidates.append(Path.home() / "Library" / "Application Support" / "PhisperLite")
+
+        candidates.extend([
             Path.home() / ".phisperlite",
             Path(tempfile.gettempdir()) / "PhisperLite",
-        ]
+        ])
 
         for candidate in candidates:
             if self._is_writable_directory(candidate):
@@ -231,6 +241,17 @@ class PhisperConfig:
         if getattr(sys, "frozen", False):
             return str(Path.home())
         return str(self.BASE_DIR)
+
+    def get_icon_candidates(self) -> list[Path]:
+        """Return icon candidates in platform-preferred order."""
+        system_name = platform.system()
+        if system_name == "Darwin":
+            names = ["icon.icns", "icon.png", "icon.ico", "favicon-2.ico"]
+        elif system_name == "Windows":
+            names = ["favicon-2.ico", "icon.ico", "icon.png", "icon.icns"]
+        else:
+            names = ["icon.png", "favicon-2.ico", "icon.ico", "icon.icns"]
+        return [self.RES_DIR / name for name in names]
 
 # 全局配置单例
 config = PhisperConfig()
