@@ -1,4 +1,5 @@
-from PySide6.QtCore import QThread, Signal, Qt
+from PySide6.QtCore import QThread, Qt, QUrl, Signal
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QComboBox,
     QFileDialog,
@@ -14,14 +15,15 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from utils.config import config
 from ui.icons import get_app_icon, get_app_pixmap
 from ui.worker import WorkflowWorker
+from utils.config import config
 
 
 class MainWindow(QMainWindow):
     start_requested = Signal(str, str)
     cancel_requested = Signal()
+    README_URL = "https://github.com/Phnt0mW/PhisperLite?tab=readme-ov-file#phisperlite"
 
     def __init__(self):
         super().__init__()
@@ -49,6 +51,7 @@ class MainWindow(QMainWindow):
         self.browse_button = QPushButton("浏览")
         self.resource_button = QPushButton("选择资源目录")
         self.check_resource_button = QPushButton("检查资源")
+        self.readme_button = QPushButton("使用说明")
         self.start_button = QPushButton("开始处理")
         self.cancel_button = QPushButton("取消")
         self.cancel_button.setEnabled(False)
@@ -77,6 +80,7 @@ class MainWindow(QMainWindow):
         translator_row.addWidget(self.translator_combo)
 
         button_row = QHBoxLayout()
+        button_row.addWidget(self.readme_button)
         button_row.addWidget(self.start_button)
         button_row.addWidget(self.cancel_button)
 
@@ -97,6 +101,7 @@ class MainWindow(QMainWindow):
         self.browse_button.clicked.connect(self._browse_file)
         self.resource_button.clicked.connect(self._choose_resource_dir)
         self.check_resource_button.clicked.connect(self._check_resource_dir)
+        self.readme_button.clicked.connect(self._open_readme)
         self.start_button.clicked.connect(self._start_processing)
         self.cancel_button.clicked.connect(self._cancel_processing)
 
@@ -170,6 +175,10 @@ class MainWindow(QMainWindow):
             index = self.translator_combo.findData(current_backend)
             if index >= 0:
                 self.translator_combo.setCurrentIndex(index)
+
+    def _open_readme(self):
+        if not QDesktopServices.openUrl(QUrl(self.README_URL)):
+            self._show_message("warning", "说明文档", f"无法打开文档链接：\n{self.README_URL}")
 
     def _start_processing(self):
         file_path = self.path_input.text().strip()
@@ -262,6 +271,7 @@ class MainWindow(QMainWindow):
         self.browse_button.setEnabled(not is_running)
         self.resource_button.setEnabled(not is_running)
         self.check_resource_button.setEnabled(not is_running)
+        self.readme_button.setEnabled(not is_running)
         self.translator_combo.setEnabled(not is_running)
         self.cancel_button.setEnabled(is_running)
 

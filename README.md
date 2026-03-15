@@ -1,88 +1,149 @@
 # PhisperLite
 
-PhisperLite 是一个面向本地工作流的轻量桌面工具，用来把音视频处理成双语字幕。
+PhisperLite 是一个本地运行的桌面工具，用来把音频或视频处理成双语字幕。
 
-它的目标很直接：
+它的思路很直接：
 
-- 提取音视频音轨
-- 用本地 `whisper-cli` 做语音识别
-- 用本地 GGUF 翻译模型生成双语字幕
-- 以轻量 `.app` 的形式分发，而不是把超大模型直接打进安装包
+- 用 `ffmpeg` 提取音轨
+- 用本地 `whisper.cpp` 做语音识别
+- 用本地 GGUF 大模型做字幕翻译
+- 最终输出双语 `.srt` 字幕文件
 
-## Features
+整个流程都在本机完成，不依赖在线字幕服务。
 
-- 本地运行，不依赖在线字幕服务
-- 轻量版 macOS 应用包
-- 启动后可手动选择 `resources` 文件夹
-- 支持 `Hunyuan` 和 `Qwen` 两种本地翻译模型
-- 处理过程带状态、进度和日志输出
+## 适合谁
 
-## Platform
+- 想给视频做双语字幕的人
+- 想离线处理音频转字幕的人
+- 想自己准备模型和工具、不想把大模型打进安装包的人
+
+## 当前支持
 
 - macOS
-- 当前优先支持 Apple Silicon (`arm64`)
-- Python 3.11 用于本地开发与打包
+- Windows
 
-## Quick Start
+说明：
+- 代码已经做了 Windows/macOS 双平台适配
+- macOS 仍然是当前更成熟的首发平台
+- Windows 需要你自己准备对应的 `ffmpeg.exe` 和 `whisper-cli.exe`
 
-1. 下载或构建 `PhisperLite.app`
-2. 准备本地 `resources/` 文件夹
-3. 启动应用
-4. 点击“选择资源目录”
-5. 点击“检查资源”
-6. 选择音频或视频文件并开始处理
+## 它会产出什么
 
-## Required Resources
+处理完成后，程序会在源文件目录下生成：
 
-应用本体不内置大模型资源。首次使用前，请自行准备本地 `resources/` 文件夹。
-仓库本身也不提交 `ffmpeg`、`whisper-cli` 和模型文件，保持源码仓库轻量。
+- `xxx.translated.srt`
 
-最小目录结构如下：
+如果源文件目录不可写，程序会自动回退到项目的 `output/` 目录。
+
+## 使用前你需要准备什么
+
+PhisperLite 本体不内置以下大文件，你需要自行下载并放到 `resources/` 目录：
+
+- `ffmpeg` 或 `ffmpeg.exe`
+- `whisper-cli` 或 `whisper-cli.exe`
+- `ggml-large-v3-turbo.bin`
+- 至少一个翻译模型
+
+支持的翻译模型：
+
+- `Hunyuan-MT-7B-q4_k_m.gguf`
+- `Qwen2.5-7B-Instruct-GGUF` 分片文件
+
+## 下载地址
+
+你可以从下面这些官方或模型页面获取资源：
+
+- `whisper.cpp` Releases: https://github.com/ggml-org/whisper.cpp/releases
+- `FFmpeg` Windows builds page: https://ffmpeg.org/download.html#build-windows
+- `Hunyuan-MT-7B-GGUF`: https://huggingface.co/Mungert/Hunyuan-MT-7B-GGUF/tree/main
+- `Qwen2.5-7B-Instruct-GGUF`: https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF
+
+补充说明：
+
+- macOS 下通常使用没有扩展名的二进制文件，比如 `ffmpeg`、`whisper-cli`
+- Windows 下通常使用 `.exe`，比如 `ffmpeg.exe`、`whisper-cli.exe`
+- `ggml-large-v3-turbo.bin` 一般来自 `whisper.cpp` 相关模型下载流程
+- Qwen 模型通常是多分片文件，需要把完整分片都放进去
+
+## resources 目录应该怎么放
+
+最小目录结构示例：
 
 ```text
 resources/
   ffmpeg
+  ffmpeg.exe
   whisper-cli
+  whisper-cli.exe
   ggml-large-v3-turbo.bin
   Hunyuan-MT-7B-q4_k_m.gguf
 ```
 
-如果你想使用 Qwen 作为翻译模型，请准备完整分片：
+如果你想用 Qwen，通常会是这样：
 
 ```text
 resources/
   ffmpeg
+  ffmpeg.exe
   whisper-cli
+  whisper-cli.exe
   ggml-large-v3-turbo.bin
   qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf
   qwen2.5-7b-instruct-q4_k_m-00002-of-00002.gguf
 ```
 
-当前项目使用到的资源文件名与本地校验逻辑一致，具体可以参考 [utils/config.py](utils/config.py)。
+说明：
 
-## Local Development
+- 不需要同时放 mac 和 Windows 两套二进制，按你自己的系统准备即可
+- 程序会自动按平台优先选择合适的可执行文件
+- 图标资源也已经按平台做了选择逻辑
+
+## 怎么开始用
+
+1. 启动程序
+2. 先选择你的 `resources/` 目录
+3. 点击“检查资源”
+4. 选择一个音频或视频文件
+5. 选择翻译模型
+6. 点击“开始处理”
+7. 等待输出字幕
+
+如果资源不完整，界面会直接提示缺少哪些文件。
+
+## 开发环境启动
 
 ```bash
-python3.11 -m venv venv
+python -m venv venv
+```
+
+macOS/Linux:
+
+```bash
 source venv/bin/activate
 pip install -r requirements.txt
 python main.py
 ```
 
-## Packaging
+Windows PowerShell:
+
+```powershell
+venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python main.py
+```
+
+## 打包
 
 先安装打包工具：
 
 ```bash
-source venv/bin/activate
 pip install pyinstaller
 ```
 
-打轻量版 macOS 包：
+macOS 示例：
 
 ```bash
-env PYINSTALLER_CONFIG_DIR="$PWD/.pyinstaller" \
-venv/bin/pyinstaller \
+pyinstaller \
   --noconfirm \
   --windowed \
   --name PhisperLite \
@@ -94,42 +155,45 @@ venv/bin/pyinstaller \
   main.py
 ```
 
-构建完成后会得到：
-
-- `dist/PhisperLite.app`
-
-如果要发布 Release，建议进一步压缩：
+Windows 示例：
 
 ```bash
-cd dist
-ditto -c -k --sequesterRsrc --keepParent \
-  PhisperLite.app \
-  PhisperLite-macos-arm64-v0.1.0.zip
+pyinstaller ^
+  --noconfirm ^
+  --windowed ^
+  --name PhisperLite ^
+  --icon resources/icon.ico ^
+  --exclude-module torch ^
+  --exclude-module tensorflow ^
+  --exclude-module transformers ^
+  --collect-all llama_cpp ^
+  main.py
 ```
 
-## GitHub Release Strategy
+## 常见问题
 
-推荐的发布方式是：
+### 1. 为什么程序本体不直接附带模型？
 
-1. GitHub 仓库只放源码、文档和轻量打包配置
-2. GitHub Release 只放轻量版 `.app` 或 zip 包
-3. 大模型、`ffmpeg`、`whisper-cli` 由用户本地准备
-4. 在 Release 页面明确说明如何选择 `resources/` 文件夹
+因为模型和工具体积都比较大，把它们和应用打在一起会让仓库、安装包和更新流程变得很重。
 
-这样做的好处是：
+### 2. Windows 和 macOS 能共用同一个 resources 吗？
 
-- 仓库体积可控
-- 安装包体积可控
-- 模型可独立更新
-- 不会被超大资源拖慢每次发版
+模型文件可以共用，但 `ffmpeg` 和 `whisper-cli` 这种可执行文件要按平台分别准备。
 
-## Suggested First Release
+### 3. 输出文件在哪里？
 
-- Tag: `v0.1.0`
-- Asset: `PhisperLite-macos-arm64-v0.1.0.zip`
-- 文案草稿见 [RELEASE_v0.1.0.md](RELEASE_v0.1.0.md)
+默认优先输出到源文件所在目录；如果那里不可写，就会回退到 `output/`。
 
-## Project Structure
+### 4. Windows 上翻译速度或兼容性为什么和 mac 不一样？
+
+当前代码里对 `llama_cpp` 做了更稳妥的双平台默认配置：
+
+- macOS 默认 `n_gpu_layers=-1`
+- Windows 默认 `n_gpu_layers=0`
+
+你也可以通过环境变量 `PHISPER_N_GPU_LAYERS` 自己覆盖。
+
+## 项目结构
 
 ```text
 main.py
@@ -140,12 +204,12 @@ utils/
 resources/
 ```
 
-## Notes
+## 相关说明
 
-- 本项目当前优先关注本地可用性和轻量分发
-- 如果资源目录不完整，应用会提示用户配置，而不是直接崩溃
-- 当前版本的图标、资源目录和日志目录都已经适配轻量包流程
+双平台适配的额外说明见：
+
+- [WINDOWS_MACOS_NOTES.md](WINDOWS_MACOS_NOTES.md)
 
 ## License
 
-本项目使用 [MIT License](LICENSE)。
+MIT

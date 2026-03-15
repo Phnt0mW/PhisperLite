@@ -1,91 +1,150 @@
-# Phisperlite
+# PhisperLite
 
-***
+PhisperLite is a local desktop tool for turning audio or video files into bilingual subtitles.
 
-PhisperLite is a lightweight desktop tool for local workflows, used to process audio and video into bilingual subtitles.
+The workflow is simple:
 
-Its goal is straightforward:
+- Extract audio with `ffmpeg`
+- Run speech recognition with local `whisper.cpp`
+- Translate subtitles with a local GGUF model
+- Export a bilingual `.srt` subtitle file
 
-- Extract audio and video tracks
-- Perform speech recognition using the local `whisper-cli`
-- Generate bilingual subtitles using a local GGUF translation model
-- Distributed as a lightweight `.app` package, without bundling large models directly into the installer
+Everything runs on your machine. No online subtitle service is required.
 
-## Features
+## Who It Is For
 
-- Runs locally, no dependency on online subtitle services
-- Lightweight macOS application package
-- Allows manual selection of the `resources` folder after launch
-- Supports two local translation models: `Hunyuan` and `Qwen`
-- Processing includes status, progress and log output
+- People who want bilingual subtitles for videos
+- People who want offline audio-to-subtitle workflows
+- People who prefer to manage models and tools separately instead of bundling them into the app
 
-## Platform
+## Current Platform Support
 
 - macOS
-- Apple Silicon (`arm64`) is prioritized for support at present
-- Python 3.11 is used for local development and packaging
+- Windows
 
-## Quick Start
+Notes:
 
-1. Download or build `PhisperLite.app`
-2. Prepare the local `resources/` folder
-3. Launch the application
-4. Click **Select Resource Directory**
-5. Click **Check Resources**
-6. Select an audio or video file and start processing
+- The codebase now includes Windows/macOS compatibility adjustments
+- macOS is still the more mature primary platform
+- On Windows, you need to prepare `ffmpeg.exe` and `whisper-cli.exe` yourself
 
-## Required Resources
+## What It Outputs
 
-The application itself does **not** include large model resources. Please prepare a local `resources/` folder before first use.
+After processing, the app will generate:
 
-The repository also does not commit `ffmpeg`, `whisper-cli`, or model files, keeping the source code repository lightweight.
+- `xxx.translated.srt`
 
-The minimal directory structure is as follows:
+The app will try to write output next to the source file first. If that directory is not writable, it falls back to `output/`.
+
+## What You Need Before Running
+
+PhisperLite does not bundle large runtime assets. You need to download and place these files into `resources/` yourself:
+
+- `ffmpeg` or `ffmpeg.exe`
+- `whisper-cli` or `whisper-cli.exe`
+- `ggml-large-v3-turbo.bin`
+- At least one translation model
+
+Supported translation models:
+
+- `Hunyuan-MT-7B-q4_k_m.gguf`
+- `Qwen2.5-7B-Instruct-GGUF` shard files
+
+## Download Links
+
+You can get the required tools and models from these pages:
+
+- `whisper.cpp` releases: https://github.com/ggml-org/whisper.cpp/releases
+- `FFmpeg` Windows builds page: https://ffmpeg.org/download.html#build-windows
+- `Hunyuan-MT-7B-GGUF`: https://huggingface.co/Mungert/Hunyuan-MT-7B-GGUF/tree/main
+- `Qwen2.5-7B-Instruct-GGUF`: https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF
+
+Extra notes:
+
+- On macOS, binaries usually have no extension, such as `ffmpeg` and `whisper-cli`
+- On Windows, binaries are usually `.exe`, such as `ffmpeg.exe` and `whisper-cli.exe`
+- `ggml-large-v3-turbo.bin` usually comes from the `whisper.cpp` model download flow
+- Qwen models are usually split into multiple shards, so make sure all required parts are present
+
+## How To Arrange `resources/`
+
+Minimal example:
 
 ```text
 resources/
   ffmpeg
+  ffmpeg.exe
   whisper-cli
+  whisper-cli.exe
   ggml-large-v3-turbo.bin
   Hunyuan-MT-7B-q4_k_m.gguf
 ```
 
-If you want to use Qwen as the translation model, please prepare the full shards:
+If you want to use Qwen, the directory will usually look like this:
 
 ```text
 resources/
   ffmpeg
+  ffmpeg.exe
   whisper-cli
+  whisper-cli.exe
   ggml-large-v3-turbo.bin
   qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf
   qwen2.5-7b-instruct-q4_k_m-00002-of-00002.gguf
 ```
 
-The filenames of resources used in the current project are consistent with the local verification logic, for details please refer to [utils/config.py](utils/config.py).
+Notes:
 
-## Local Development
+- You do not need both macOS and Windows binaries at the same time; only prepare the set for your current system
+- The app will automatically choose the correct executable for the current platform
+- Icon loading also follows platform-specific fallback rules now
+
+## How To Use It
+
+1. Launch the app
+2. Select your `resources/` directory
+3. Click `Check Resources`
+4. Select an audio or video file
+5. Choose a translation model
+6. Click `Start`
+7. Wait for subtitle export
+
+If required files are missing, the UI will tell you what is missing.
+
+## Development Setup
 
 ```bash
-python3.11 -m venv venv
+python -m venv venv
+```
+
+macOS/Linux:
+
+```bash
 source venv/bin/activate
+pip install -r requirements.txt
+python main.py
+```
+
+Windows PowerShell:
+
+```powershell
+venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python main.py
 ```
 
 ## Packaging
 
-First, install the packaging tools:
+Install PyInstaller first:
 
 ```bash
-source venv/bin/activate
 pip install pyinstaller
 ```
 
-Build the lightweight macOS package:
+macOS example:
 
 ```bash
-env PYINSTALLER_CONFIG_DIR="$PWD/.pyinstaller" \
-venv/bin/pyinstaller \
+pyinstaller \
   --noconfirm \
   --windowed \
   --name PhisperLite \
@@ -97,9 +156,43 @@ venv/bin/pyinstaller \
   main.py
 ```
 
-After building, you will get:
+Windows example:
 
-- `dist/PhisperLite.app`
+```bash
+pyinstaller ^
+  --noconfirm ^
+  --windowed ^
+  --name PhisperLite ^
+  --icon resources/icon.ico ^
+  --exclude-module torch ^
+  --exclude-module tensorflow ^
+  --exclude-module transformers ^
+  --collect-all llama_cpp ^
+  main.py
+```
+
+## FAQ
+
+### Why are the models not bundled into the app?
+
+Because the models and runtime tools are large. Keeping them outside the app makes the repository, installer, and update flow much lighter.
+
+### Can Windows and macOS share the same `resources/` directory?
+
+Model files can be shared, but platform-specific executables such as `ffmpeg` and `whisper-cli` need the correct binaries for each platform.
+
+### Where are output files written?
+
+The app tries to write next to the source file first. If that location is not writable, it falls back to `output/`.
+
+### Why can translation speed or compatibility differ between Windows and macOS?
+
+The current `llama_cpp` defaults are now platform-aware:
+
+- macOS defaults to `n_gpu_layers=-1`
+- Windows defaults to `n_gpu_layers=0`
+
+You can override this with the `PHISPER_N_GPU_LAYERS` environment variable.
 
 ## Project Structure
 
@@ -112,10 +205,12 @@ utils/
 resources/
 ```
 
-## Notes
-- This project currently prioritizes local usability and lightweight distribution.
-- If the resource directory is incomplete, the app will prompt the user to configure it instead of crashing directly.
-- The icon, resource directory, and log directory in the current version have been adapted to the lightweight packaging workflow.
+## Related Notes
+
+For extra Windows/macOS compatibility details, see:
+
+- [WINDOWS_MACOS_NOTES.md](WINDOWS_MACOS_NOTES.md)
 
 ## License
-This project is licensed under the [MIT License](LICENSE).
+
+MIT

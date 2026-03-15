@@ -13,8 +13,15 @@ class PhisperConfig:
 
     def __init__(self):
         self._bundled_res_dir = None
+        self._doc_search_dirs = []
         if getattr(sys, "frozen", False):
             executable_dir = Path(sys.executable).resolve().parent
+            self._doc_search_dirs = [
+                executable_dir,
+                executable_dir.parent,
+                executable_dir.parent / "Resources",
+                Path(getattr(sys, "_MEIPASS", executable_dir)),
+            ]
             bundle_resources = executable_dir.parent / "Resources" / "resources"
             meipass_resources = Path(getattr(sys, "_MEIPASS", executable_dir)) / "resources"
 
@@ -29,6 +36,7 @@ class PhisperConfig:
         else:
             self.BASE_DIR = Path(__file__).resolve().parents[1]
             self._bundled_res_dir = self.BASE_DIR / "resources"
+            self._doc_search_dirs = [self.BASE_DIR]
 
         self.TEMP_DIR = self.BASE_DIR / "temp"
         self.OUTPUT_DIR = self.BASE_DIR / "output"
@@ -252,6 +260,23 @@ class PhisperConfig:
         else:
             names = ["icon.png", "favicon-2.ico", "icon.ico", "icon.icns"]
         return [self.RES_DIR / name for name in names]
+
+    def get_readme_path(self, prefer_english: bool = False) -> str:
+        preferred_names = ["README.en.md", "README.md"] if prefer_english else ["README.md", "README.en.md"]
+        fallback_names = ["WINDOWS_MACOS_NOTES.md"]
+        checked_dirs = []
+
+        for base_dir in self._doc_search_dirs + [self.BASE_DIR]:
+            if base_dir in checked_dirs:
+                continue
+            checked_dirs.append(base_dir)
+
+            for name in preferred_names + fallback_names:
+                candidate = base_dir / name
+                if candidate.exists():
+                    return str(candidate)
+
+        return ""
 
 # 全局配置单例
 config = PhisperConfig()
