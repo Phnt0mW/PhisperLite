@@ -3,6 +3,24 @@ import sys
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
 
+
+class SafeConsoleHandler(logging.StreamHandler):
+    """Fallback to replacement characters when the console encoding cannot print some Unicode."""
+
+    def emit(self, record):
+        try:
+            super().emit(record)
+        except UnicodeEncodeError:
+            try:
+                msg = self.format(record)
+                encoding = getattr(self.stream, "encoding", None) or "utf-8"
+                safe_msg = msg.encode(encoding, errors="replace").decode(encoding, errors="replace")
+                self.stream.write(safe_msg + self.terminator)
+                self.flush()
+            except Exception:
+                self.handleError(record)
+
+
 def setup_logger(name="Phisper"):
     # 1. 获取项目根目录下的 logs 文件夹（从 config 导入或直接计算）
     # 这里我们直接根据文件位置计算，确保 logger 模块独立
@@ -36,7 +54,7 @@ def setup_logger(name="Phisper"):
     )
 
     # 4. 控制台 Handler (Stdout)
-    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler = SafeConsoleHandler(sys.stdout)
     console_handler.setLevel(logging.INFO) # 控制台通常只看 INFO 级别
     console_handler.setFormatter(formatter)
 

@@ -54,8 +54,8 @@ Supported translation models:
 
 You can get the required tools and models from these pages:
 
-- `whisper.cpp` releases: https://github.com/ggml-org/whisper.cpp/releases
-- `FFmpeg` Windows builds page: https://ffmpeg.org/download.html#build-windows
+- `whisper.cpp` releases: https://github.com/ggml-org/whisper.cpp/releases/download/v1.8.3/whisper-bin-x64.zip
+- `FFmpeg` Windows builds page: https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z
 - `Hunyuan-MT-7B-GGUF`: https://huggingface.co/Mungert/Hunyuan-MT-7B-GGUF/tree/main
 - `Qwen2.5-7B-Instruct-GGUF`: https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF
 

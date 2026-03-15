@@ -53,8 +53,8 @@ PhisperLite 本体不内置以下大文件，你需要自行下载并放到 `res
 
 你可以从下面这些官方或模型页面获取资源：
 
-- `whisper.cpp` Releases: https://github.com/ggml-org/whisper.cpp/releases
-- `FFmpeg` Windows builds page: https://ffmpeg.org/download.html#build-windows
+- `whisper.cpp` Releases: https://github.com/ggml-org/whisper.cpp/releases/download/v1.8.3/whisper-bin-x64.zip
+- `FFmpeg` Windows builds page: https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z
 - `Hunyuan-MT-7B-GGUF`: https://huggingface.co/Mungert/Hunyuan-MT-7B-GGUF/tree/main
 - `Qwen2.5-7B-Instruct-GGUF`: https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF
 

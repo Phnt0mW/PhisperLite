@@ -79,7 +79,7 @@ class WhisperWorker(TaskStep):
 
     def _build_command(self, wav_path: str, offset_ms: int) -> list:
         """构造 whisper.cpp 的底层执行命令"""
-        return [
+        cmd = [
             config.whisper_cli,
             "-m", config.whisper_model_path,
             "-f", wav_path,
@@ -93,6 +93,23 @@ class WhisperWorker(TaskStep):
             "--no-speech-thold", "0.6",
             "--max-len", "80"
         ]
+
+        thread_count = self._resolve_thread_count()
+        if thread_count > 0:
+            cmd.extend(["-t", str(thread_count)])
+
+        return cmd
+
+    def _resolve_thread_count(self) -> int:
+        configured_value = os.environ.get("PHISPER_WHISPER_THREADS", "").strip()
+        if configured_value:
+            try:
+                return max(1, int(configured_value))
+            except ValueError:
+                self.logger.warning(f"忽略无效的 PHISPER_WHISPER_THREADS: {configured_value}")
+
+        cpu_count = os.cpu_count() or 1
+        return max(1, cpu_count // 2)
 
     def _monitor_process(self, process: subprocess.Popen, total_duration: float, 
                          progress_cb: Callable[[float], None], parsed_segments: List[Tuple[int, int, str]]) -> Tuple[bool, int]:
