@@ -1,5 +1,7 @@
 # PhisperLite
 
+中文 | [English](./README.en.md)
+
 PhisperLite 是一个本地运行的桌面工具，用来把音频或视频处理成双语字幕。
 
 它的思路很直接：

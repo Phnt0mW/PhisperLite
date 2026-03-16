@@ -1,5 +1,7 @@
 # PhisperLite
 
+[中文](./README.md) | English
+
 PhisperLite is a local desktop tool for turning audio or video files into bilingual subtitles.
 
 The workflow is simple:
