@@ -3,6 +3,7 @@
 [中文](./README.md) | English
 
 PhisperLite is a local desktop tool for turning audio or video files into bilingual subtitles.
+This project is built entirely on currently available open-source tools and models.
 
 The workflow is simple:
 
@@ -11,7 +12,7 @@ The workflow is simple:
 - Translate subtitles with a local GGUF model
 - Export a bilingual `.srt` subtitle file
 
-Everything runs on your machine. No online subtitle service is required.
+Everything runs on your machine, is completely free to use, does not upload your data to the cloud, and has no output limits.
 
 ## Who It Is For
 
@@ -27,8 +28,9 @@ Everything runs on your machine. No online subtitle service is required.
 Notes:
 
 - The codebase now includes Windows/macOS compatibility adjustments
-- macOS is still the more mature primary platform
-- On Windows, you need to prepare `ffmpeg.exe` and `whisper-cli.exe` yourself
+- macOS is still the more mature primary platform, and more than 90% of testing has been done on macOS
+- Windows support is currently focused on practical usability rather than full parity
+- You need to prepare the required runtime assets yourself on every platform because cross-platform resource binaries are not interchangeable
 
 ## What It Outputs
 
@@ -42,19 +44,22 @@ The app will try to write output next to the source file first. If that director
 
 PhisperLite does not bundle large runtime assets. You need to download and place these files into `resources/` yourself:
 
-- `ffmpeg` or `ffmpeg.exe`
-- `whisper-cli` or `whisper-cli.exe`
+- `ffmpeg` or `ffmpeg.exe` for audio processing
+- `whisper-cli` or `whisper-cli.exe` for speech recognition
 - `ggml-large-v3-turbo.bin`
-- At least one translation model
+- At least one translation model, with Hunyuan recommended as the default choice
 
 Supported translation models:
 
-- `Hunyuan-MT-7B-q4_k_m.gguf`
+- `Hunyuan-MT-7B-q4_k_m.gguf` (recommended)
 - `Qwen2.5-7B-Instruct-GGUF` shard files
 
 ## Download Links
 
 You can get the required tools and models from these pages:
+
+Please make sure you download binaries that match your platform and verify that they can run on your own machine.
+The direct binary links below point to Windows builds, so macOS users should double-check before downloading.
 
 - `whisper.cpp` releases: https://github.com/ggml-org/whisper.cpp/releases/download/v1.8.3/whisper-bin-x64.zip
 - `FFmpeg` Windows builds page: https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z
@@ -112,6 +117,8 @@ Notes:
 7. Wait for subtitle export
 
 If required files are missing, the UI will tell you what is missing.
+
+## For Users Who Want To Customize The Project
 
 ## Development Setup
 
@@ -208,6 +215,9 @@ resources/
 ```
 
 ## Related Notes
+
+This project makes heavy use of AI tools, so the code is not guaranteed to be fully optimized.
+Contributions, custom forks, and independent upgrades are all welcome. You can publish your own version or open a pull request.
 
 For extra Windows/macOS compatibility details, see:
 
