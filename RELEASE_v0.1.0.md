@@ -1,86 +1,63 @@
 # PhisperLite v0.1.0
 
-## Release Assets
+PhisperLite 是一款本地离线字幕工具。  
+它可以把音频或视频处理成双语字幕（`.srt`），完整流程都在本机运行。
 
-- `PhisperLite-macos-arm64-v0.1.0.zip`
+## v0.1.0 提供的版本
 
-## Build Commands
+### macOS（Apple Silicon）
 
-从项目根目录执行：
+- 资源名：`PhisperLite-macos-arm64-v0.1.0.zip`
+- 适用系统：macOS（M 系列芯片）
+- 形态：桌面应用（`.app`）
 
-```bash
-env PYINSTALLER_CONFIG_DIR="$PWD/.pyinstaller" \
-venv/bin/pyinstaller \
-  --noconfirm \
-  --windowed \
-  --name PhisperLite \
-  --icon resources/icon.icns \
-  --exclude-module torch \
-  --exclude-module tensorflow \
-  --exclude-module transformers \
-  --collect-all llama_cpp \
-  main.py
-```
+### Windows（x64）
 
-构建完成后压缩 `.app`：
+- 资源名：`PhisperLite-windows-x64.zip`
+- 适用系统：Windows 10/11 64 位
+- 形态：解压即用（`PhisperLite.exe` + `_internal`）
 
-```bash
-cd dist
-ditto -c -k --sequesterRsrc --keepParent \
-  PhisperLite.app \
-  PhisperLite-macos-arm64-v0.1.0.zip
-```
+## 首次使用前需要准备
 
-## Suggested Git Commands
+本 Release 不内置大模型与外部工具，请自行准备 `resources` 目录。  
+程序启动后，先在界面里选择你的 `resources` 目录，再开始处理任务。
 
-```bash
-git add .
-git commit -m "feat: release v0.1.0"
-git tag v0.1.0
-git push origin main
-git push origin v0.1.0
-```
-
-## Release Notes Draft
-
-PhisperLite 是一个面向本地工作流的轻量桌面工具，可以完成音视频转写与双语字幕生成。
-
-### Highlights
-
-- 轻量版 macOS 应用包，不再内置超大模型资源
-- 首次启动后可在界面中手动选择 `resources` 文件夹
-- 支持本地 `whisper-cli` 转写
-- 支持本地 GGUF 翻译模型生成双语字幕
-
-### Notes
-
-- 当前 Release 为 `macOS Apple Silicon (arm64)` 版本
-- 应用本体不内置模型、`ffmpeg`、`whisper-cli`
-- GitHub 仓库同样不提交这些大资源与平台二进制
-- 首次启动后请点击“选择资源目录”，指向你本地准备好的 `resources/` 文件夹
-
-### Required `resources/` Layout
+最低需要：
 
 ```text
 resources/
-  ffmpeg
-  whisper-cli
+  ffmpeg(.exe)
+  whisper-cli(.exe)
   ggml-large-v3-turbo.bin
-  Hunyuan-MT-7B-q4_k_m.gguf
+  一个翻译模型（Hunyuan 或 Qwen）
 ```
 
-如果使用 Qwen，请改为：
+Qwen 需要完整分片（示例）：
 
 ```text
 resources/
-  ffmpeg
-  whisper-cli
-  ggml-large-v3-turbo.bin
   qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf
   qwen2.5-7b-instruct-q4_k_m-00002-of-00002.gguf
 ```
 
-### Known Scope
+## 快速开始
 
-- 当前主要面向 macOS 本地使用场景
-- 首版发布优先保证流程可用和资源解耦
+1. 下载并解压对应平台版本。
+2. 启动 PhisperLite。
+3. 选择 `resources` 目录并点击“检查资源”。
+4. 选择音频/视频文件。
+5. 选择翻译模型并开始处理。
+6. 完成后在源文件目录（或 `output/`）查看字幕结果。
+
+## v0.1.0 版本说明
+
+- 支持 macOS 与 Windows 双平台运行。
+- 支持本地 `whisper.cpp` 语音识别。
+- 支持本地 GGUF 翻译模型生成双语字幕。
+- 输出标准 `.srt` 字幕文件。
+
+## 重要提示
+
+- Windows 用户请保留解压后的完整目录结构，不要单独移动 `PhisperLite.exe`。
+- 如果遇到“资源不完整”提示，优先检查 `ffmpeg`、`whisper-cli`、`ggml-large-v3-turbo.bin` 和翻译模型是否齐全。
+- 建议同时下载 `SHA256SUMS.txt` 做文件完整性校验。
