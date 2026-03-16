@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import logging
+import platform
 from pathlib import Path
 from typing import Callable, List, Tuple
 
@@ -79,6 +80,7 @@ class WhisperWorker(TaskStep):
 
     def _build_command(self, wav_path: str, offset_ms: int) -> list:
         """构造 whisper.cpp 的底层执行命令"""
+        beam_size, best_of = self._resolve_decode_params()
         cmd = [
             config.whisper_cli,
             "-m", config.whisper_model_path,
@@ -86,8 +88,8 @@ class WhisperWorker(TaskStep):
             "-l", "auto",
                       
             "--offset-t", str(offset_ms),
-            "--beam-size", "5",
-            "--best-of", "5",
+            "--beam-size", str(beam_size),
+            "--best-of", str(best_of),
             "--entropy-thold", "2.4",
             "--logprob-thold", "-1.0",
             "--no-speech-thold", "0.6",
@@ -109,7 +111,30 @@ class WhisperWorker(TaskStep):
                 self.logger.warning(f"忽略无效的 PHISPER_WHISPER_THREADS: {configured_value}")
 
         cpu_count = os.cpu_count() or 1
+        if platform.system() == "Windows":
+            return max(1, cpu_count - 1)
         return max(1, cpu_count // 2)
+
+    def _resolve_decode_params(self) -> Tuple[int, int]:
+        beam_size = self._resolve_positive_int_env("PHISPER_WHISPER_BEAM_SIZE")
+        best_of = self._resolve_positive_int_env("PHISPER_WHISPER_BEST_OF")
+        if beam_size and best_of:
+            return beam_size, best_of
+
+        if platform.system() == "Windows":
+            return 2, 2
+        return 5, 5
+
+    def _resolve_positive_int_env(self, env_name: str) -> int:
+        configured_value = os.environ.get(env_name, "").strip()
+        if not configured_value:
+            return 0
+
+        try:
+            return max(1, int(configured_value))
+        except ValueError:
+            self.logger.warning(f"忽略无效的 {env_name}: {configured_value}")
+            return 0
 
     def _monitor_process(self, process: subprocess.Popen, total_duration: float, 
                          progress_cb: Callable[[float], None], parsed_segments: List[Tuple[int, int, str]]) -> Tuple[bool, int]:
