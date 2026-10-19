@@ -2,52 +2,48 @@
 
 [中文](./README.md) | English
 
-PhisperLite is a local desktop tool for turning audio or video files into bilingual subtitles.
-This project is built entirely on currently available open-source tools and models.
+PhisperLite is a fully local desktop subtitle tool that turns audio or video into bilingual subtitles. Everything runs on your machine: it is free, has no output limits, and never uploads your data.
 
-The workflow is simple:
+The workflow:
 
 - Extract audio with `ffmpeg`
 - Run speech recognition with local `whisper.cpp`
 - Translate subtitles with a local GGUF model
 - Export a bilingual `.srt` subtitle file
 
-Everything runs on your machine, is completely free to use, does not upload your data to the cloud, and has no output limits.
-
 ## Who It Is For
 
-- People who want bilingual subtitles for videos
-- People who want offline audio-to-subtitle workflows
-- People who prefer to manage models and tools separately instead of bundling them into the app
+- Content creators who need bilingual subtitles for their videos
+- Users who want to transcribe audio offline
+- Users who prefer not to deal with online service quotas or privacy concerns
 
-## Current Platform Support
+## Supported Platforms
 
 - macOS
 - Windows
 
 Notes:
 
-- The codebase now includes Windows/macOS compatibility adjustments
-- macOS is still the more mature primary platform, and more than 90% of testing has been done on macOS
-- Windows support is currently focused on practical usability rather than full parity
-- You need to prepare the required runtime assets yourself on every platform because cross-platform resource binaries are not interchangeable
+- The codebase supports both Windows and macOS
+- macOS is the more mature platform: over 90% of testing is done on macOS, while Windows builds are supported and usable
+- Runtime assets differ by platform and must be prepared separately
 
-## What It Outputs
+## Output
 
-After processing, the app will generate:
+After processing, the app generates:
 
 - `xxx.translated.srt`
 
-The app will try to write output next to the source file first. If that directory is not writable, it falls back to `output/`.
+The app tries to write next to the source file first. If that directory is not writable, it falls back to the project's `output/` directory.
 
-## What You Need Before Running
+## Before You Start
 
-PhisperLite does not bundle large runtime assets. You need to download and place these files into `resources/` yourself:
+PhisperLite does not bundle the following large files. Download them and place them in the `resources/` directory:
 
 - `ffmpeg` or `ffmpeg.exe` for audio processing
 - `whisper-cli` or `whisper-cli.exe` for speech recognition
-- `ggml-large-v3-turbo.bin`
-- At least one translation model, with Hunyuan recommended as the default choice
+- `ggml-large-v3-turbo.bin` for the Whisper model
+- At least one translation model (Hunyuan is recommended)
 
 Supported translation models:
 
@@ -56,45 +52,33 @@ Supported translation models:
 
 ## Download Links
 
-You can get the required tools and models from these pages:
+You can get the required assets from these official pages:
 
-Please make sure you download binaries that match your platform and verify that they can run on your own machine.
-The direct binary links below point to Windows builds, so macOS users should double-check before downloading.
+- [whisper.cpp releases](https://github.com/ggml-org/whisper.cpp/releases/download/v1.8.3/whisper-bin-x64.zip)
+- [FFmpeg Windows builds](https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z)
+- [Hunyuan-MT-7B-GGUF](https://huggingface.co/Mungert/Hunyuan-MT-7B-GGUF/tree/main)
+- [Qwen2.5-7B-Instruct-GGUF](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF)
 
-- `whisper.cpp` releases: https://github.com/ggml-org/whisper.cpp/releases/download/v1.8.3/whisper-bin-x64.zip
-- `FFmpeg` Windows builds page: https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z
-- `Hunyuan-MT-7B-GGUF`: https://huggingface.co/Mungert/Hunyuan-MT-7B-GGUF/tree/main
-- `Qwen2.5-7B-Instruct-GGUF`: https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF
+> Note: the binary links above point to Windows builds by default. Make sure the assets match your platform and run correctly on your machine.
 
-Extra notes:
-
-- On macOS, binaries usually have no extension, such as `ffmpeg` and `whisper-cli`
-- On Windows, binaries are usually `.exe`, such as `ffmpeg.exe` and `whisper-cli.exe`
-- `ggml-large-v3-turbo.bin` usually comes from the `whisper.cpp` model download flow
-- Qwen models are usually split into multiple shards, so make sure all required parts are present
-
-## How To Arrange `resources/`
+## `resources/` Layout
 
 Minimal example:
 
 ```text
 resources/
-  ffmpeg
-  ffmpeg.exe
-  whisper-cli
-  whisper-cli.exe
+  ffmpeg(.exe)
+  whisper-cli(.exe)
   ggml-large-v3-turbo.bin
   Hunyuan-MT-7B-q4_k_m.gguf
 ```
 
-If you want to use Qwen, the directory will usually look like this:
+With Qwen:
 
 ```text
 resources/
-  ffmpeg
-  ffmpeg.exe
-  whisper-cli
-  whisper-cli.exe
+  ffmpeg(.exe)
+  whisper-cli(.exe)
   ggml-large-v3-turbo.bin
   qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf
   qwen2.5-7b-instruct-q4_k_m-00002-of-00002.gguf
@@ -102,31 +86,34 @@ resources/
 
 Notes:
 
-- You do not need both macOS and Windows binaries at the same time; only prepare the set for your current system
-- The app will automatically choose the correct executable for the current platform
-- Icon loading also follows platform-specific fallback rules now
+- macOS executables usually have no extension, such as `ffmpeg` and `whisper-cli`; Windows binaries use `.exe`
+- You do not need binaries for both platforms; prepare the set for your current system
+- The app automatically selects the executable and icon for the current platform
+- When using Qwen, all shard files must be present
 
-## How To Use It
+## Quick Start
 
 1. Launch the app
 2. Select your `resources/` directory
-3. Click `Check Resources`
+3. Click **Check Resources**
 4. Select an audio or video file
 5. Choose a translation model
-6. Click `Start`
-7. Wait for subtitle export
+6. Click **Start**
+7. Find the generated `xxx.translated.srt` next to the source file or in `output/`
 
-If required files are missing, the UI will tell you what is missing.
+If required files are missing, the UI will list them.
 
-## For Users Who Want To Customize The Project
+## Customization
 
-## Development Setup
+If you want to modify or extend the project, use the setup and packaging steps below.
+
+### Development Environment
 
 ```bash
 python -m venv venv
 ```
 
-macOS/Linux:
+macOS / Linux:
 
 ```bash
 source venv/bin/activate
@@ -142,7 +129,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-## Packaging
+### Packaging
 
 Install PyInstaller first:
 
@@ -167,7 +154,7 @@ pyinstaller \
 
 Windows example:
 
-```bash
+```bat
 pyinstaller ^
   --noconfirm ^
   --windowed ^
@@ -182,46 +169,45 @@ pyinstaller ^
 
 ## FAQ
 
-### Why are the models not bundled into the app?
+### 1. Why are models not bundled with the app?
 
-Because the models and runtime tools are large. Keeping them outside the app makes the repository, installer, and update flow much lighter.
+Models and runtime tools are large. Bundling them would make the repository, installer, and update flow much heavier.
 
-### Can Windows and macOS share the same `resources/` directory?
+### 2. Can Windows and macOS share the same `resources/` directory?
 
-Model files can be shared, but platform-specific executables such as `ffmpeg` and `whisper-cli` need the correct binaries for each platform.
+Model files can be shared, but executables such as `ffmpeg` and `whisper-cli` must be prepared for each platform.
 
-### Where are output files written?
+### 3. Where are output files written?
 
-The app tries to write next to the source file first. If that location is not writable, it falls back to `output/`.
+The app writes next to the source file first. If that location is not writable, it falls back to `output/`.
 
-### Why can translation speed or compatibility differ between Windows and macOS?
+### 4. Why do translation speed and compatibility differ between Windows and macOS?
 
-The current `llama_cpp` defaults are now platform-aware:
+The app uses platform-specific `llama_cpp` defaults:
 
-- macOS defaults to `n_gpu_layers=-1`
-- Windows defaults to `n_gpu_layers=0`
+- macOS uses `n_gpu_layers=-1`
+- Windows uses `n_gpu_layers=0`
 
 You can override this with the `PHISPER_N_GPU_LAYERS` environment variable.
 
 ## Project Structure
 
 ```text
-main.py
-core/
-service/
-ui/
-utils/
-resources/
+main.py          Application entry point
+core/            Audio extraction, speech recognition, and translation
+service/         Workflow orchestration
+ui/              UI and background tasks
+utils/           Configuration and logging
+resources/       Local runtime assets
 ```
 
 ## Related Notes
 
-This project makes heavy use of AI tools, so the code is not guaranteed to be fully optimized.
-Contributions, custom forks, and independent upgrades are all welcome. You can publish your own version or open a pull request.
+This project makes heavy use of AI tools during development, so the code still has room for improvement.
 
-For extra Windows/macOS compatibility details, see:
+Contributions, custom forks, and independent upgrades are welcome. You can publish your own version or open a pull request.
 
-- [WINDOWS_MACOS_NOTES.md](WINDOWS_MACOS_NOTES.md)
+For additional Windows/macOS details, see [WINDOWS_MACOS_NOTES.md](WINDOWS_MACOS_NOTES.md).
 
 ## License
 

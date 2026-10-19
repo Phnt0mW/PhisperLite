@@ -7,7 +7,7 @@ import logging
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
-# --- 运行时动态路径补丁 ---
+# 确保项目根目录位于导入路径中
 ROOT_DIR = str(Path(__file__).resolve().parents[1])
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
@@ -57,7 +57,7 @@ class TranslatorWorker(TaskStep):
     def _init_model(self):
         if not self.llm:
             display_name = config.get_translator_display_name(self.backend)
-            self.logger.info(f"⚙️ 加载{display_name}模型: {os.path.basename(self.loaded_model_path)}")
+            self.logger.info(f"⚙️ 加载 {display_name} 模型：{os.path.basename(self.loaded_model_path)}")
             self.llm = Llama(
                 model_path=self.loaded_model_path,
                 n_gpu_layers=self._resolve_n_gpu_layers(),
@@ -72,7 +72,7 @@ class TranslatorWorker(TaskStep):
                 return int(configured_value)
             except ValueError:
                 self.logger.warning(
-                    f"鏃犳晥鐨?PHISPER_N_GPU_LAYERS 鍊? {configured_value}锛屽皢浣跨敤榛樿閰嶇疆"
+                    f"无效的 PHISPER_N_GPU_LAYERS 值：{configured_value}，将使用默认配置"
                 )
 
         if platform.system() == "Darwin":
@@ -92,11 +92,11 @@ class TranslatorWorker(TaskStep):
         segments = self._parse_srt(srt_path)
         
         if not segments:
-            self.logger.warning(f"未读取到可翻译字幕: {srt_path}")
+            self.logger.warning(f"未读取到可翻译字幕：{srt_path}")
             return ""
 
         display_name = config.get_translator_display_name(self.backend)
-        self.logger.info(f"🚀 开始双语翻译 | 模型: {display_name} | 目标: {srt_path} | 总行数: {len(segments)}")
+        self.logger.info(f"🚀 开始翻译 | 模型：{display_name} | 目标：{srt_path} | 总行数：{len(segments)}")
 
         results = []
         for i, seg in enumerate(segments):
@@ -134,29 +134,29 @@ class TranslatorWorker(TaskStep):
             trans_text = self._generate_translation(prompt)
             duration = time.time() - start_t
 
-            print(f"\n\n\033[1;34m[ 行 #{block_id} | 耗时: {duration:.2f}s ]\033[0m\n┌" + "─" * 60)
+            print(f"\n\n\033[1;34m[ 行 #{block_id} | 耗时：{duration:.2f}s ]\033[0m\n┌" + "─" * 60)
             if trans_text:
-                print(f"│ \033[36m原: {seg['text']}\033[0m\n│ \033[32m译: {trans_text}\033[0m")
+                print(f"│ \033[36m原：{seg['text']}\033[0m\n│ \033[32m译：{trans_text}\033[0m")
                 bilingual_text = f"{trans_text}\n{seg['text']}"
                 if log_cb:
-                    log_cb(f"[翻译 {block_id}] 原: {seg['text']}")
-                    log_cb(f"[翻译 {block_id}] 译: {trans_text}")
+                    log_cb(f"[翻译 {block_id}] 原：{seg['text']}")
+                    log_cb(f"[翻译 {block_id}] 译：{trans_text}")
             else:
-                print(f"│ \033[36m原: {seg['text']}\033[0m\n│ \033[1;31m[ 翻译缺失 ]\033[0m")
+                print(f"│ \033[36m原：{seg['text']}\033[0m\n│ \033[1;31m[ 翻译缺失 ]\033[0m")
                 bilingual_text = seg["text"]
                 if log_cb:
-                    log_cb(f"[翻译 {block_id}] 原: {seg['text']}")
-                    log_cb(f"[翻译 {block_id}] 译: [翻译缺失，已回退原文]")
+                    log_cb(f"[翻译 {block_id}] 原：{seg['text']}")
+                    log_cb(f"[翻译 {block_id}] 译：[翻译缺失，已回退原文]")
 
             print("└" + "─" * 60)
             sys.stdout.flush()
             return {**seg, "text": bilingual_text}
 
         except Exception as e:
-            print(f"\n\033[1;31m❌ 行 {block_id} 异常: {e}\033[0m")
+            print(f"\n\033[1;31m❌ 行 {block_id} 异常：{e}\033[0m")
             if log_cb:
-                log_cb(f"[翻译 {block_id}] 原: {seg['text']}")
-                log_cb(f"[翻译 {block_id}] 异常: {e}")
+                log_cb(f"[翻译 {block_id}] 原：{seg['text']}")
+                log_cb(f"[翻译 {block_id}] 异常：{e}")
             return seg
 
     def _build_prompt(self, prev_text: str, current_text: str) -> str:
@@ -246,18 +246,18 @@ class TranslatorWorker(TaskStep):
         return False
 
     def _parse_srt(self, path: str) -> List[Dict]:
-        """极简 SRT 解析"""
+        """解析 SRT 文件，返回字幕段落列表"""
         if not os.path.exists(path): return []
         with open(path, 'r', encoding='utf-8') as f:
             blocks = [b.split('\n') for b in re.split(r'\n\n+', f.read().strip()) if b.strip()]
         return [{"id": b[0], "time": b[1], "text": " ".join(b[2:])} for b in blocks if len(b) >= 3]
 
     def _save_srt(self, segments: List[Dict], out_path: str):
-        """极简 SRT 写入"""
+        """将字幕段落写入 SRT 文件"""
         with open(out_path, "w", encoding="utf-8") as f:
             f.write("\n\n".join([f"{s['id']}\n{s['time']}\n{s['text']}" for s in segments]) + "\n")
 
-# --- 测试模块 ---
+# --- 本地测试 ---
 if __name__ == "__main__":
     logger.setLevel(logging.INFO)
     

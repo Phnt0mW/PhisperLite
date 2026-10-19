@@ -35,11 +35,11 @@ class MainWindow(QMainWindow):
         self.resize(640, 420)
 
         self.path_input = QLineEdit()
-        self.path_input.setPlaceholderText("请选择一个音频或视频文件")
+        self.path_input.setPlaceholderText("选择音频或视频文件")
 
         self.resource_input = QLineEdit()
         self.resource_input.setReadOnly(True)
-        self.resource_input.setPlaceholderText("请选择 resources 文件夹")
+        self.resource_input.setPlaceholderText("选择 resources 目录")
 
         self.translator_combo = QComboBox()
         self._translator_options = []
@@ -48,7 +48,7 @@ class MainWindow(QMainWindow):
         self.icon_label.setAlignment(Qt.AlignCenter)
         self.icon_label.setPixmap(get_app_pixmap(72))
 
-        self.browse_button = QPushButton("浏览")
+        self.browse_button = QPushButton("选择文件")
         self.resource_button = QPushButton("选择资源目录")
         self.check_resource_button = QPushButton("检查资源")
         self.readme_button = QPushButton("使用说明")
@@ -121,7 +121,7 @@ class MainWindow(QMainWindow):
     def _choose_resource_dir(self):
         directory = QFileDialog.getExistingDirectory(
             self,
-            "选择 resources 文件夹",
+            "选择 resources 目录",
             config.get_default_browse_dir(),
         )
         if not directory:
@@ -134,7 +134,7 @@ class MainWindow(QMainWindow):
     def _check_resource_dir(self, show_success: bool = False):
         is_ready, missing_items = config.get_resource_status()
         if is_ready:
-            self._append_log(f"资源目录检查通过: {config.get_resource_dir()}")
+            self._append_log(f"资源目录检查通过：{config.get_resource_dir()}")
             if show_success:
                 self._show_message("information", "资源检查", "资源目录检查通过。")
             return True
@@ -148,11 +148,11 @@ class MainWindow(QMainWindow):
         if config.get_resource_status()[0]:
             return
 
-        self._append_log("当前资源目录未就绪，请先选择 resources 文件夹。")
+        self._append_log("当前资源目录未就绪，请先选择 resources 目录。")
         self._show_message(
             "information",
             "配置资源目录",
-            "首次使用或资源未就绪，请先选择 resources 文件夹。",
+            "首次使用或资源未就绪，请先选择 resources 目录。",
         )
 
     def _refresh_resource_state(self):
@@ -187,20 +187,20 @@ class MainWindow(QMainWindow):
             return
 
         if not config.get_resource_status()[0]:
-            self._show_message("warning", "提示", "请先配置可用的 resources 文件夹。")
+            self._show_message("warning", "提示", "请先配置可用的 resources 目录。")
             return
 
         if self._thread is not None:
-            self._show_message("information", "提示", "当前已有任务在运行。")
+            self._show_message("information", "提示", "已有任务正在运行。")
             return
 
         self.progress_bar.setValue(0)
         self.status_label.setText("准备开始")
         self.log_output.clear()
-        self._append_log(f"已选择文件: {file_path}")
+        self._append_log(f"已选择文件：{file_path}")
         backend = self.translator_combo.currentData()
         backend_label = self.translator_combo.currentText()
-        self._append_log(f"已选择翻译模型: {backend_label}")
+        self._append_log(f"已选择翻译模型：{backend_label}")
         self._set_running_state(True)
 
         self._thread = QThread(self)
@@ -238,7 +238,7 @@ class MainWindow(QMainWindow):
         output_path = result.get("bilingual_srt_path", "")
         self.status_label.setText("处理完成")
         self.progress_bar.setValue(100)
-        self._append_log(f"输出文件: {output_path}")
+        self._append_log(f"输出文件：{output_path}")
         self._show_message("information", "完成", f"字幕已生成：\n{output_path}")
 
     def _on_failed(self, error_message: str):
