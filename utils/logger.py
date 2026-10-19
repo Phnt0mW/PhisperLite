@@ -5,7 +5,7 @@ from logging.handlers import RotatingFileHandler
 
 
 class SafeConsoleHandler(logging.StreamHandler):
-    """Fallback to replacement characters when the console encoding cannot print some Unicode."""
+    """控制台编码无法输出部分 Unicode 字符时，使用替换字符。"""
 
     def emit(self, record):
         try:
@@ -22,20 +22,20 @@ class SafeConsoleHandler(logging.StreamHandler):
 
 
 def setup_logger(name="Phisper"):
-    # 1. 获取项目根目录下的 logs 文件夹（从 config 导入或直接计算）
-    # 这里我们直接根据文件位置计算，确保 logger 模块独立
+    # 1. 获取项目根目录下的 logs 目录
+    # 根据文件位置计算，确保 logger 模块可以独立使用
     try:
-        # 正常作为包运行时的导入
+        # 作为包导入时直接使用 utils.config
         from utils.config import config
     except (ImportError, ModuleNotFoundError):
-        # 直接运行此文件调试时的补救措施
+        # 直接运行本文件时，先把项目根目录加入导入路径
         
-        # 将当前 logger.py 的上级目录（即项目根目录）加入搜索路径
+        # 当前文件的上级目录即项目根目录
         root_path = str(Path(__file__).resolve().parents[1])
         if root_path not in sys.path:
             sys.path.append(root_path)
-        # 再次尝试导入
-        from config import config
+        # 重新导入配置
+        from utils.config import config
     log_file = config.LOG_DIR / "phisper.log"
 
     # 2. 创建 Logger 实例
@@ -53,12 +53,12 @@ def setup_logger(name="Phisper"):
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 
-    # 4. 控制台 Handler (Stdout)
+    # 4. 控制台 Handler
     console_handler = SafeConsoleHandler(sys.stdout)
     console_handler.setLevel(logging.INFO) # 控制台通常只看 INFO 级别
     console_handler.setFormatter(formatter)
 
-    # 5. 文件 Handler (RotatingFileHandler - 自动滚动更新，限制日志体积)
+    # 5. 文件 Handler（自动滚动，限制日志体积）
     # 当前日志文件控制在约 100KB，额外保留 1 个备份文件
     file_handler = None
     try:
@@ -69,7 +69,7 @@ def setup_logger(name="Phisper"):
         file_handler.setFormatter(formatter)
     except OSError as exc:
         console_handler.setLevel(logging.DEBUG)
-        console_handler.stream.write(f"[Phisper] 文件日志不可用，已退回控制台日志: {exc}\n")
+        console_handler.stream.write(f"[Phisper] 文件日志不可用，已退回控制台日志：{exc}\n")
         console_handler.flush()
 
     # 6. 添加 Handler
@@ -82,7 +82,7 @@ def setup_logger(name="Phisper"):
 # 全局默认 logger
 logger = setup_logger()
 
-# --- 测试模块 ---
+# --- 本地测试 ---
 if __name__ == "__main__":
     logger.info("Logger 模块初始化成功！")
     logger.debug("这是一条调试信息，仅在文件和 Debug 模式可见。")

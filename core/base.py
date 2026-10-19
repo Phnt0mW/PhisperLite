@@ -3,8 +3,8 @@ from typing import Any, Callable
 
 class TaskStep:
     """
-    Phisper 2.0 工序基类
-    所有的核心组件（FFmpeg, Whisper, Translator）都必须继承此类。
+    处理步骤基类
+    FFmpeg、Whisper 和 Translator 等处理步骤均继承此类。
     """
     def __init__(self):
         # 控制开关：用于从外部（如点击取消按钮）停止当前耗时任务
@@ -16,9 +16,9 @@ class TaskStep:
         """
         核心执行逻辑
         
-        :param input_data: 上一个工序输出的数据（可能是文件路径，也可能是文本列表）
+        :param input_data: 上一个处理步骤输出的数据（可能是文件路径，也可能是文本列表）
         :param progress_cb: 进度回调函数，接收一个 0.0 到 1.0 之间的 float
-        :return: 处理后的数据，将作为下一个工序的 input_data
+        :return: 处理后的数据，将作为下一个处理步骤的 input_data
         """
         raise NotImplementedError("子类必须实现 run 方法")
 
@@ -32,7 +32,7 @@ class TaskStep:
 
     def check_aborted(self):
         """
-        便捷检查：如果任务已中止，抛出异常或返回特定值
+        任务已中止时抛出 InterruptedError
         """
         if self._is_aborted:
-            raise InterruptedError("Task was aborted by user.")
+            raise InterruptedError("任务已被用户中止。")

@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 
 class PhisperConfig:
+    """应用配置。"""
+
     TRANSLATOR_BACKENDS = {
         "hunyuan": "混元",
         "qwen": "千问",
@@ -127,7 +129,7 @@ class PhisperConfig:
         resource_dir = self.RES_DIR
 
         if not resource_dir.exists():
-            return False, [f"资源目录不存在: {resource_dir}"]
+            return False, [f"资源目录不存在：{resource_dir}"]
 
         if not Path(self.ffmpeg_bin).exists():
             missing_items.append("缺少 ffmpeg")
@@ -150,20 +152,21 @@ class PhisperConfig:
     def get_resource_status_text(self) -> str:
         is_ready, missing_items = self.get_resource_status()
         if is_ready:
-            return f"资源目录就绪: {self.RES_DIR}"
-        return "资源未就绪: " + "；".join(missing_items)
+            return f"资源目录就绪：{self.RES_DIR}"
+        return "资源未就绪：" + "；".join(missing_items)
+
     @property
     def llm_model_path(self) -> str:
         """兼容旧调用：默认返回混元模型路径"""
         return self.get_llm_model_path("hunyuan")
     @property
     def ffmpeg_bin(self) -> str:
-        """定位FFmpeg可执行文件（自动适配系统并处理Unix执行权限）"""
+        """定位 FFmpeg 可执行文件，自动适配平台并处理 Unix 执行权限"""
         sys_name = platform.system()
         ext = ".exe" if sys_name == "Windows" else ""
         local_path = self.RES_DIR / "ffmpeg" / f"ffmpeg{ext}"
         
-        # 兼容你结构图中 resources/ffmpeg 或 resources/ffmpeg.exe 的写法
+        # 兼容 resources/ffmpeg/ffmpeg 与 resources/ffmpeg 两种放置方式
         if not local_path.exists():
             local_path = self.RES_DIR / f"ffmpeg{ext}"
 
@@ -178,29 +181,29 @@ class PhisperConfig:
 
     @property
     def whisper_cli(self) -> str:
-        """定位whisper-cli可执行文件"""
+        """定位 whisper-cli 可执行文件"""
         ext = ".exe" if platform.system() == "Windows" else ""
         target = self.RES_DIR / f"whisper-cli{ext}"
         return str(target) if target.exists() else f"whisper-cli{ext}"
 
     @property
     def whisper_model_path(self) -> str:
-        """定位Whisper模型文件 (ggml格式)"""
+        """定位 Whisper 模型文件（ggml 格式）"""
         model_name = "ggml-large-v3-turbo.bin"
         target = self.RES_DIR / model_name
         return str(target) if target.exists() else model_name
 
     @property
     def hunyuan_model_path(self) -> str:
-        """定位混元 (Hunyuan-MT) 模型文件 (GGUF格式)"""
+        """定位混元（Hunyuan-MT）模型文件（GGUF 格式）"""
         model_name = "Hunyuan-MT-7B-q4_k_m.gguf"
         target = self.RES_DIR / model_name
-        # 如果模型在特定子目录下，可修改为 self.RES_DIR / "hunyuan" / model_name
+        # 如果模型放在子目录中，可改为 self.RES_DIR / "hunyuan" / model_name
         return str(target) if target.exists() else ""
 
     @property
     def qwen_model_path(self) -> str:
-        """定位千问 (Qwen) GGUF 模型入口文件"""
+        """定位千问（Qwen）GGUF 模型入口文件"""
         part1 = self.RES_DIR / "qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf"
         part2 = self.RES_DIR / "qwen2.5-7b-instruct-q4_k_m-00002-of-00002.gguf"
         return str(part1) if part1.exists() and part2.exists() else ""
@@ -228,7 +231,7 @@ class PhisperConfig:
 
     @property
     def nllb_model_dir(self) -> str:
-        """定位NLLB翻译模型目录 (作为备选翻译方案)"""
+        """定位 NLLB 翻译模型目录（备选翻译方案）"""
         target = self.RES_DIR / "nllb_1.3b_ct2"
         return str(target) if target.exists() else ""
 
@@ -243,7 +246,7 @@ class PhisperConfig:
         return str(self.BASE_DIR)
 
     def get_icon_candidates(self) -> list[Path]:
-        """Return icon candidates in platform-preferred order."""
+        """按平台优先级返回图标候选路径。"""
         system_name = platform.system()
         if system_name == "Darwin":
             names = ["icon.icns", "icon.png", "icon.ico", "favicon-2.ico"]
@@ -259,20 +262,20 @@ config = PhisperConfig()
 # 配置自检模块
 if __name__ == "__main__":
     print("\n" + "="*60)
-    print(f"🔍 PhisperLite 路径环境检查 (System: {platform.system()})")
+    print(f"🔍 PhisperLite 路径环境检查（System：{platform.system()}）")
     print("="*60)
     
-    # 定义检查项：(显示名称, 路径值, 是否为核心必选)
+    # 检查项：(显示名称，路径值，是否为核心资源)
     check_items = [
         ("项目根目录", str(config.BASE_DIR), True),
         ("资源总目录", str(config.RES_DIR), True),
         ("FFmpeg 路径", config.ffmpeg_bin, True),
         ("Whisper 程序", config.whisper_cli, True),
         ("Whisper 模型", config.whisper_model_path, True),
-        ("混元模型 (GGUF)", config.hunyuan_model_path, True),
-        ("千问模型 (GGUF)", config.qwen_model_path, False),
+        ("混元模型（GGUF）", config.hunyuan_model_path, True),
+        ("千问模型（GGUF）", config.qwen_model_path, False),
         ("NLLB 模型目录", config.nllb_model_dir, False),
-        ("临时文件夹", str(config.TEMP_DIR), True),
+        ("临时目录", str(config.TEMP_DIR), True),
     ]
 
     critical_missing = False
@@ -285,15 +288,15 @@ if __name__ == "__main__":
             status_icon = "✅ 正常"
         else:
             if is_critical:
-                status_icon = "❌ 缺失 (核心资源)"
+                status_icon = "❌ 缺失（核心资源）"
                 # 排除系统环境变量中可能存在的命令
                 if "ffmpeg" not in name.lower() and "Whisper 程序" not in name:
                     critical_missing = True
             else:
-                status_icon = "⚠️  未找到 (可选资源)"
+                status_icon = "⚠️  未找到（可选资源）"
         
-        print(f"{name:<15}: {path if path else '未定义'}")
-        print(f"{'':<17}状态: {status_icon}")
+        print(f"{name:<15}：{path if path else '未定义'}")
+        print(f"{'':<17}状态：{status_icon}")
         print("-" * 55)
 
     print("\n" + "="*60)

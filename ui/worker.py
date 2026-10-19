@@ -18,8 +18,8 @@ class WorkflowWorker(QObject):
     @Slot(str, str)
     def process(self, video_path: str, translator_backend: str):
         self._cancel_requested = False
-        self.log_message.emit(f"开始处理: {video_path}")
-        self.log_message.emit(f"翻译模型: {translator_backend}")
+        self.log_message.emit(f"开始处理：{video_path}")
+        self.log_message.emit(f"翻译模型：{translator_backend}")
 
         try:
             result = self._workflow.start_pipeline(
@@ -37,17 +37,17 @@ class WorkflowWorker(QObject):
                 self.cancelled.emit()
             else:
                 error_msg = result.get("error_msg") or "处理失败。"
-                self.log_message.emit(f"处理失败: {error_msg}")
+                self.log_message.emit(f"处理失败：{error_msg}")
                 self.failed.emit(error_msg)
         except Exception as exc:
             error_msg = str(exc)
-            self.log_message.emit(f"运行异常: {error_msg}")
+            self.log_message.emit(f"运行异常：{error_msg}")
             self.failed.emit(error_msg)
 
     @Slot()
     def cancel(self):
         self._cancel_requested = True
-        self.log_message.emit("正在取消任务...")
+        self.log_message.emit("正在取消任务…")
         self._workflow.abort()
 
     def _handle_progress(self, state, progress: float, message: str):
