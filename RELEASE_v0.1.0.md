@@ -1,28 +1,26 @@
 # PhisperLite v0.1.0
 
-PhisperLite 是一款本地离线字幕工具。  
-它可以把音频或视频处理成双语字幕（`.srt`），完整流程都在本机运行。
+PhisperLite 是一款本地离线字幕工具，可将音频或视频转换为双语 `.srt` 字幕，完整流程均在本机完成。
 
-## v0.1.0 提供的版本
+## v0.1.0 发布版本
 
 ### macOS（Apple Silicon）
 
 - 资源名：`PhisperLite-macos-arm64-v0.1.0.zip`
 - 适用系统：macOS（M 系列芯片）
-- 形态：桌面应用（`.app`）
+- 发布形式：桌面应用（`.app`）
 
 ### Windows（x64）
 
 - 资源名：`PhisperLite-windows-x64.zip`
 - 适用系统：Windows 10/11 64 位
-- 形态：解压即用（`PhisperLite.exe` + `_internal`）
+- 发布形式：解压即用（`PhisperLite.exe` + `_internal`）
 
-## 首次使用前需要准备
+## 首次使用准备
 
-本 Release 不内置大模型与外部工具，请自行准备 `resources` 目录。  
-程序启动后，先在界面里选择你的 `resources` 目录，再开始处理任务。
+本 Release 不内置大模型和外部工具，请自行准备 `resources/` 目录。启动程序后，先在界面中选择资源目录，再开始处理任务。
 
-最低需要：
+至少需要：
 
 ```text
 resources/
@@ -32,7 +30,7 @@ resources/
   一个翻译模型（Hunyuan 或 Qwen）
 ```
 
-Qwen 需要完整分片（示例）：
+使用 Qwen 时，需要放入完整分片：
 
 ```text
 resources/
@@ -42,22 +40,22 @@ resources/
 
 ## 快速开始
 
-1. 下载并解压对应平台版本。
+1. 下载并解压对应平台的版本。
 2. 启动 PhisperLite。
-3. 选择 `resources` 目录并点击“检查资源”。
-4. 选择音频/视频文件。
-5. 选择翻译模型并开始处理。
-6. 完成后在源文件目录（或 `output/`）查看字幕结果。
+3. 选择 `resources/` 目录并点击“检查资源”。
+4. 选择音频或视频文件。
+5. 选择翻译模型并点击“开始处理”。
+6. 完成后，在源文件目录（或 `output/`）中查看字幕结果。
 
-## v0.1.0 版本说明
+## v0.1.0 功能
 
-- 支持 macOS 与 Windows 双平台运行。
-- 支持本地 `whisper.cpp` 语音识别。
-- 支持本地 GGUF 翻译模型生成双语字幕。
-- 输出标准 `.srt` 字幕文件。
+- 支持 macOS 和 Windows 双平台运行
+- 支持本地 `whisper.cpp` 语音识别
+- 支持本地 GGUF 翻译模型生成双语字幕
+- 输出标准 `.srt` 字幕文件
 
-## 重要提示
+## 注意事项
 
 - Windows 用户请保留解压后的完整目录结构，不要单独移动 `PhisperLite.exe`。
-- 如果遇到“资源不完整”提示，优先检查 `ffmpeg`、`whisper-cli`、`ggml-large-v3-turbo.bin` 和翻译模型是否齐全。
-- 建议同时下载 `SHA256SUMS.txt` 做文件完整性校验。
+- 如果出现“资源不完整”提示，请优先检查 `ffmpeg`、`whisper-cli`、`ggml-large-v3-turbo.bin` 和翻译模型是否齐全。
+- 建议同时下载 `SHA256SUMS.txt`，校验文件完整性。
